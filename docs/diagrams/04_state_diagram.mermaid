@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> planned
+    planned --> in_progress : work started
+    in_progress --> done : merged / committed
+    planned --> slipped : planned_date passed, no match
+    in_progress --> slipped : deadline passed, still open
+    slipped --> in_progress : work resumed
+    slipped --> done : eventually completed
+    done --> [*]

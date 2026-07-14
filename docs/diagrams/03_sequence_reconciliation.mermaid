@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant Job as Scheduled Job
+    participant SVN as SVN Repository
+    participant Parser as Log Parser
+    participant API as Planning API
+    participant DB as Storage
+    participant Matcher as Matcher
+
+    Job->>SVN: svn log --xml
+    SVN-->>Job: revision history
+    Job->>Parser: parse XML log
+    Parser-->>Job: structured commit list
+
+    Job->>API: fetch planned items in date window
+    API->>DB: query PlannedCommit / PlannedEvent
+    DB-->>API: planned items
+    API-->>Job: planned items
+
+    Job->>Matcher: match(actualCommits, plannedItems)
+    Matcher-->>Job: ReconciliationResult[]
+
+    Job->>API: persist reconciliation results
+    API->>DB: save ReconciliationResult
+    DB-->>API: ack
+    API-->>Job: done

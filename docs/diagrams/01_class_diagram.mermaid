@@ -1,0 +1,76 @@
+classDiagram
+    class Codeline {
+      +String id
+      +String name
+      +String parentCodelineId
+      +Date branchPointDate
+      +String color
+    }
+    class PlannedCommit {
+      +String id
+      +String codelineId
+      +String title
+      +String description
+      +Date plannedDate
+      +Status status
+      +String linkedRealRevision
+      +String milestoneId
+    }
+    class PlannedEvent {
+      +String id
+      +EventType type
+      +String sourceCodelineId
+      +String targetCodelineId
+      +Date plannedDate
+      +Status status
+      +String milestoneId
+    }
+    class Milestone {
+      +String id
+      +String name
+      +Date targetDate
+      +String description
+    }
+    class TeamMember {
+      +String id
+      +String name
+      +String color
+    }
+    class RepoBinding {
+      +String id
+      +VcsType vcsType
+      +String logSource
+      +Date lastSyncedAt
+    }
+    class ReconciliationResult {
+      +String id
+      +String plannedItemId
+      +String actualRevision
+      +ReconciliationStatus status
+      +Date computedAt
+    }
+    class Status {
+      <<enumeration>>
+      planned
+      in_progress
+      done
+      slipped
+    }
+    class EventType {
+      <<enumeration>>
+      BRANCH_CREATE
+      MERGE
+      RELEASE_TAG
+    }
+
+    Codeline "1" o-- "many" PlannedCommit : contains
+    Codeline "1" o-- "many" PlannedEvent : contains
+    Codeline "0..1" --> "many" Codeline : parent of
+    Milestone "1" o-- "many" PlannedCommit : groups
+    Milestone "1" o-- "many" PlannedEvent : groups
+    PlannedCommit "many" --> "many" TeamMember : assigned to
+    PlannedCommit "1" --> "0..1" ReconciliationResult : reconciled by
+    PlannedEvent "1" --> "0..1" ReconciliationResult : reconciled by
+    RepoBinding "1" --> "many" ReconciliationResult : produces
+    PlannedCommit --> Status
+    PlannedEvent --> EventType
