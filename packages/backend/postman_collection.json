@@ -1,0 +1,417 @@
+{
+  "info": {
+    "name": "plangit — Planning API",
+    "description": "CRUD requests for plangit's v1 domain model (Codeline, PlannedCommit, PlannedEvent, Milestone, TeamMember). Each entity folder's \"Create\" request captures the new resource's id into a collection variable via a test script, so the other requests in that folder (and other folders that reference it) can chain off it without manual copy-paste. Run folders top to bottom the first time: Codelines -> Team Members -> Milestones -> Planned Commits -> Planned Events.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001/api", "type": "string" },
+    { "key": "codelineId", "value": "", "type": "string" },
+    { "key": "branchCodelineId", "value": "", "type": "string" },
+    { "key": "teamMemberId", "value": "", "type": "string" },
+    { "key": "milestoneId", "value": "", "type": "string" },
+    { "key": "plannedCommitId", "value": "", "type": "string" },
+    { "key": "plannedEventId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Codelines",
+      "item": [
+        {
+          "name": "Create Codeline (trunk)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('codelineId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/codelines", "host": ["{{baseUrl}}"], "path": ["codelines"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"trunk\",\n  \"color\": \"#2a78d6\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Codeline (branch off trunk)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('branchCodelineId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/codelines", "host": ["{{baseUrl}}"], "path": ["codelines"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"branches/release-2.4\",\n  \"parent_codeline_id\": \"{{codelineId}}\",\n  \"branch_point_date\": \"2026-08-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Codelines",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/codelines", "host": ["{{baseUrl}}"], "path": ["codelines"] }
+          }
+        },
+        {
+          "name": "Get Codeline by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/codelines/{{codelineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["codelines", "{{codelineId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Codeline",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/codelines/{{codelineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["codelines", "{{codelineId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"color\": \"#008300\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Codeline",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/codelines/{{codelineId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["codelines", "{{codelineId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Team Members",
+      "item": [
+        {
+          "name": "Create Team Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('teamMemberId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/team-members", "host": ["{{baseUrl}}"], "path": ["team-members"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Ada Lovelace\",\n  \"color\": \"#4a3aa7\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Team Members",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/team-members", "host": ["{{baseUrl}}"], "path": ["team-members"] }
+          }
+        },
+        {
+          "name": "Get Team Member by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/team-members/{{teamMemberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["team-members", "{{teamMemberId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Team Member",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/team-members/{{teamMemberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["team-members", "{{teamMemberId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"color\": \"#eb6834\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Team Member",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/team-members/{{teamMemberId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["team-members", "{{teamMemberId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Milestones",
+      "item": [
+        {
+          "name": "Create Milestone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('milestoneId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/milestones", "host": ["{{baseUrl}}"], "path": ["milestones"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"v2.4 release\",\n  \"target_date\": \"2026-09-01\",\n  \"description\": \"Q3 release\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Milestones",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/milestones", "host": ["{{baseUrl}}"], "path": ["milestones"] }
+          }
+        },
+        {
+          "name": "Get Milestone by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["milestones", "{{milestoneId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Milestone",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["milestones", "{{milestoneId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"description\": \"Slipped by a week, re-targeting\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Milestone",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/milestones/{{milestoneId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["milestones", "{{milestoneId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Planned Commits",
+      "item": [
+        {
+          "name": "Create Planned Commit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('plannedCommitId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/planned-commits", "host": ["{{baseUrl}}"], "path": ["planned-commits"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"codeline_id\": \"{{codelineId}}\",\n  \"title\": \"Refactor auth module\",\n  \"description\": \"Split token validation out of the request handler\",\n  \"planned_date\": \"2026-08-05\",\n  \"status\": \"planned\",\n  \"assignee_ids\": [\"{{teamMemberId}}\"],\n  \"milestone_id\": \"{{milestoneId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Planned Commits",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/planned-commits", "host": ["{{baseUrl}}"], "path": ["planned-commits"] }
+          }
+        },
+        {
+          "name": "Get Planned Commit by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/planned-commits/{{plannedCommitId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["planned-commits", "{{plannedCommitId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Planned Commit (reschedule + status)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/planned-commits/{{plannedCommitId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["planned-commits", "{{plannedCommitId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"planned_date\": \"2026-08-08\",\n  \"status\": \"in_progress\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Planned Commit",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/planned-commits/{{plannedCommitId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["planned-commits", "{{plannedCommitId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Planned Events",
+      "item": [
+        {
+          "name": "Create Planned Event (BRANCH_CREATE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('plannedEventId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/planned-events", "host": ["{{baseUrl}}"], "path": ["planned-events"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"type\": \"BRANCH_CREATE\",\n  \"source_codeline_id\": \"{{codelineId}}\",\n  \"target_codeline_id\": \"{{branchCodelineId}}\",\n  \"planned_date\": \"2026-08-01\",\n  \"milestone_id\": \"{{milestoneId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Planned Events",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/planned-events", "host": ["{{baseUrl}}"], "path": ["planned-events"] }
+          }
+        },
+        {
+          "name": "Get Planned Event by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/planned-events/{{plannedEventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["planned-events", "{{plannedEventId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Planned Event (reschedule)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/planned-events/{{plannedEventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["planned-events", "{{plannedEventId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"planned_date\": \"2026-08-04\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Planned Event",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/planned-events/{{plannedEventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["planned-events", "{{plannedEventId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
