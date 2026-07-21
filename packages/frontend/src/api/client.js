@@ -20,6 +20,8 @@ export const api = {
   listMilestones: () => request('/milestones'),
   listTeamMembers: () => request('/team-members'),
 
+  createCodeline: (data) => request('/codelines', { method: 'POST', body: JSON.stringify(data) }),
+
   updatePlannedCommit: (id, patch) =>
     request(`/planned-commits/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   updatePlannedEvent: (id, patch) =>

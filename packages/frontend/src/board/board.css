@@ -32,11 +32,32 @@
 
 .board-header {
   margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .board-header h1 {
   margin: 0 0 4px;
   font-size: 20px;
+}
+
+.board-add-button {
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--gridline);
+  background: var(--surface);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.board-add-button:hover {
+  background: var(--gridline);
 }
 
 .board-legend {
@@ -96,4 +117,102 @@
   color: var(--text-muted);
   font-size: 14px;
   padding: 32px 12px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 11, 11, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal {
+  background: var(--surface);
+  color: var(--text-primary);
+  border-radius: 10px;
+  border: 1px solid var(--gridline);
+  padding: 20px 24px 24px;
+  width: 320px;
+  box-shadow: 0 8px 24px rgba(11, 11, 11, 0.2);
+}
+
+.modal h2 {
+  margin: 0 0 16px;
+  font-size: 16px;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.modal-field input,
+.modal-field select {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--page);
+  border: 1px solid var(--gridline);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.modal-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-color-row input {
+  flex: 1;
+}
+
+.modal-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--gridline);
+  flex-shrink: 0;
+}
+
+.modal-error {
+  color: #d03b3b;
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-actions button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--gridline);
+  cursor: pointer;
+  background: var(--page);
+  color: var(--text-primary);
+}
+
+.modal-actions button[type='submit'] {
+  background: #2a78d6;
+  border-color: #2a78d6;
+  color: #ffffff;
+}
+
+.modal-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }

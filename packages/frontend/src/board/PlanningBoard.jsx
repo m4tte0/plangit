@@ -6,6 +6,7 @@ import { CalendarAxis } from './CalendarAxis.jsx';
 import { CodelineLane } from './CodelineLane.jsx';
 import { PlannedCommitNode } from './PlannedCommitNode.jsx';
 import { PlannedEventMarker } from './PlannedEventMarker.jsx';
+import { AddCodelineModal } from './AddCodelineModal.jsx';
 import './board.css';
 
 const ROW_HEIGHT = 64;
@@ -36,6 +37,7 @@ export function PlanningBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dragState, setDragState] = useState(null);
+  const [isAddingCodeline, setIsAddingCodeline] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,10 +159,22 @@ export function PlanningBoard() {
   return (
     <div className="viz-root">
       <div className="board-header">
-        <h1>plangit — planning board</h1>
-        {error && <p style={{ color: STATUS_COLOR.slipped }}>Error: {error}</p>}
+        <div>
+          <h1>plangit — planning board</h1>
+          {error && <p style={{ color: STATUS_COLOR.slipped }}>Error: {error}</p>}
+        </div>
+        <button type="button" className="board-add-button" onClick={() => setIsAddingCodeline(true)}>
+          + Add codeline
+        </button>
       </div>
       <BoardLegend />
+      {isAddingCodeline && (
+        <AddCodelineModal
+          codelines={orderedCodelines}
+          onClose={() => setIsAddingCodeline(false)}
+          onCreated={(created) => setCodelines((prev) => [...prev, created])}
+        />
+      )}
       {loading ? (
         <p className="board-empty">Loading plan…</p>
       ) : orderedCodelines.length === 0 ? (
