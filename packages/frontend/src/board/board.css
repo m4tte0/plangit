@@ -43,6 +43,14 @@
   font-size: 20px;
 }
 
+.board-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .board-add-button {
   flex-shrink: 0;
   font: inherit;
@@ -180,6 +188,28 @@
   border-radius: 50%;
   border: 1px solid var(--gridline);
   flex-shrink: 0;
+}
+
+.modal-assignees {
+  border: 1px solid var(--gridline);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 0 0 12px;
+}
+
+.modal-assignees legend {
+  padding: 0 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.modal-assignee-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-primary);
+  padding: 3px 0;
 }
 
 .modal-error {

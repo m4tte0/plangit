@@ -7,6 +7,8 @@ import { CodelineLane } from './CodelineLane.jsx';
 import { PlannedCommitNode } from './PlannedCommitNode.jsx';
 import { PlannedEventMarker } from './PlannedEventMarker.jsx';
 import { AddCodelineModal } from './AddCodelineModal.jsx';
+import { AddPlannedCommitModal } from './AddPlannedCommitModal.jsx';
+import { AddPlannedEventModal } from './AddPlannedEventModal.jsx';
 import './board.css';
 
 const ROW_HEIGHT = 64;
@@ -38,6 +40,9 @@ export function PlanningBoard() {
   const [error, setError] = useState(null);
   const [dragState, setDragState] = useState(null);
   const [isAddingCodeline, setIsAddingCodeline] = useState(false);
+  const [isAddingBranch, setIsAddingBranch] = useState(false);
+  const [isAddingPlannedCommit, setIsAddingPlannedCommit] = useState(false);
+  const [isAddingPlannedEvent, setIsAddingPlannedEvent] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -163,9 +168,38 @@ export function PlanningBoard() {
           <h1>plangit — planning board</h1>
           {error && <p style={{ color: STATUS_COLOR.slipped }}>Error: {error}</p>}
         </div>
-        <button type="button" className="board-add-button" onClick={() => setIsAddingCodeline(true)}>
-          + Add codeline
-        </button>
+        <div className="board-header-actions">
+          <button type="button" className="board-add-button" onClick={() => setIsAddingCodeline(true)}>
+            + Add codeline
+          </button>
+          <button
+            type="button"
+            className="board-add-button"
+            disabled={orderedCodelines.length === 0}
+            title={orderedCodelines.length === 0 ? 'Add a codeline first' : undefined}
+            onClick={() => setIsAddingBranch(true)}
+          >
+            + Add branch
+          </button>
+          <button
+            type="button"
+            className="board-add-button"
+            disabled={orderedCodelines.length === 0}
+            title={orderedCodelines.length === 0 ? 'Add a codeline first' : undefined}
+            onClick={() => setIsAddingPlannedCommit(true)}
+          >
+            + Add planned commit
+          </button>
+          <button
+            type="button"
+            className="board-add-button"
+            disabled={orderedCodelines.length === 0}
+            title={orderedCodelines.length === 0 ? 'Add a codeline first' : undefined}
+            onClick={() => setIsAddingPlannedEvent(true)}
+          >
+            + Add planned event
+          </button>
+        </div>
       </div>
       <BoardLegend />
       {isAddingCodeline && (
@@ -173,6 +207,28 @@ export function PlanningBoard() {
           codelines={orderedCodelines}
           onClose={() => setIsAddingCodeline(false)}
           onCreated={(created) => setCodelines((prev) => [...prev, created])}
+        />
+      )}
+      {isAddingBranch && (
+        <AddCodelineModal
+          codelines={orderedCodelines}
+          requireParent
+          onClose={() => setIsAddingBranch(false)}
+          onCreated={(created) => setCodelines((prev) => [...prev, created])}
+        />
+      )}
+      {isAddingPlannedCommit && (
+        <AddPlannedCommitModal
+          codelines={orderedCodelines}
+          onClose={() => setIsAddingPlannedCommit(false)}
+          onCreated={(created) => setCommits((prev) => [...prev, created])}
+        />
+      )}
+      {isAddingPlannedEvent && (
+        <AddPlannedEventModal
+          codelines={orderedCodelines}
+          onClose={() => setIsAddingPlannedEvent(false)}
+          onCreated={(created) => setEvents((prev) => [...prev, created])}
         />
       )}
       {loading ? (

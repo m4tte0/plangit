@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { api } from '../api/client.js';
 
-export function AddCodelineModal({ codelines, onClose, onCreated }) {
+export function AddCodelineModal({ codelines, onClose, onCreated, requireParent = false }) {
   const [name, setName] = useState('');
-  const [parentId, setParentId] = useState('');
+  const [parentId, setParentId] = useState(requireParent ? (codelines[0]?.id ?? '') : '');
   const [branchPointDate, setBranchPointDate] = useState('');
   const [color, setColor] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -14,6 +14,10 @@ export function AddCodelineModal({ codelines, onClose, onCreated }) {
     const trimmedName = name.trim();
     if (!trimmedName) {
       setFormError('Name is required');
+      return;
+    }
+    if (requireParent && !parentId) {
+      setFormError('Parent codeline is required for a branch');
       return;
     }
     setSubmitting(true);
@@ -37,7 +41,7 @@ export function AddCodelineModal({ codelines, onClose, onCreated }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Add codeline</h2>
+        <h2>{requireParent ? 'Add branch' : 'Add codeline'}</h2>
         <form onSubmit={handleSubmit}>
           <label className="modal-field">
             Name
@@ -45,7 +49,7 @@ export function AddCodelineModal({ codelines, onClose, onCreated }) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="trunk"
+              placeholder={requireParent ? 'branches/release-2.4' : 'trunk'}
               autoFocus
             />
           </label>
@@ -53,7 +57,7 @@ export function AddCodelineModal({ codelines, onClose, onCreated }) {
           <label className="modal-field">
             Parent codeline
             <select value={parentId} onChange={(e) => setParentId(e.target.value)}>
-              <option value="">None (trunk-level)</option>
+              {!requireParent && <option value="">None (trunk-level)</option>}
               {codelines.map((cl) => (
                 <option key={cl.id} value={cl.id}>
                   {cl.name}
