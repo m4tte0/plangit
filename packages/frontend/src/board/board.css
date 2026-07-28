@@ -83,13 +83,6 @@
   gap: 6px;
 }
 
-.board-legend-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
 .board-body {
   display: flex;
   border: 1px solid var(--gridline);

@@ -1,27 +1,26 @@
-// Validated default palette (see the dataviz skill's references/palette.md).
-// Categorical hues are assigned in this fixed order — never cycled per-instance,
-// never chosen ad hoc — so a lane's color stays CVD-safe relative to its neighbors.
-export const CATEGORICAL_PALETTE = [
-  '#2a78d6', // blue
-  '#008300', // green
-  '#e87ba4', // magenta
-  '#eda100', // yellow
-  '#1baf7a', // aqua
-  '#eb6834', // orange
-  '#4a3aa7', // violet
-  '#e34948', // red
+// Mermaid gitGraph "default" theme's git0-git7 branch colors, read directly
+// off a rendered diagram (mermaid.live, default theme) rather than guessed —
+// the theme computes these from color-math on primary/secondary/tertiary
+// base colors at render time, so there's no fixed hex literal to copy from
+// source. See https://mermaid.js.org/syntax/gitgraph.html.
+export const GIT_COLORS = [
+  '#0000ec', // git0
+  '#dede00', // git1
+  '#9dec00', // git2
+  '#0076ec', // git3
+  '#00ecec', // git4
+  '#00ec76', // git5
+  '#ec00ec', // git6
+  '#ec0000', // git7
 ];
 
-export function categoricalColor(index) {
-  return CATEGORICAL_PALETTE[index % CATEGORICAL_PALETTE.length];
+export function gitColor(index) {
+  return GIT_COLORS[index % GIT_COLORS.length];
 }
 
-// Status is a fixed, reserved palette — never reused for lane identity.
-// "planned" has no status color: it's the neutral default state, shown as an
-// unfilled ring rather than implying good/bad.
+// Kept only for the error banner's critical-red text; commit/branch color is
+// now purely git-color (see GIT_COLORS) per GitGraph compliance.
 export const STATUS_COLOR = {
-  in_progress: '#fab219', // warning
-  done: '#0ca30c', // good
   slipped: '#d03b3b', // critical
 };
 

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client.js';
-import { buildDateRange, createDateScale, toISODateString, addDays, startOfDay } from './dateScale.js';
-import { categoricalColor, STATUS_COLOR, STATUS_LABEL } from './colors.js';
-import { CalendarAxis } from './CalendarAxis.jsx';
+import { gitColor, STATUS_COLOR } from './colors.js';
 import { CodelineLane } from './CodelineLane.jsx';
 import { PlannedCommitNode } from './PlannedCommitNode.jsx';
 import { PlannedEventMarker } from './PlannedEventMarker.jsx';
@@ -11,23 +9,85 @@ import { AddPlannedCommitModal } from './AddPlannedCommitModal.jsx';
 import { AddPlannedEventModal } from './AddPlannedEventModal.jsx';
 import './board.css';
 
-const ROW_HEIGHT = 64;
-const AXIS_HEIGHT = 40;
-const PIXELS_PER_DAY = 40;
+const ROW_HEIGHT = 72;
+const TOP_PADDING = 64;
+const RIGHT_PADDING = 60;
+const COLUMN_WIDTH = 80;
+const LEFT_PADDING = 40;
+
+// GitGraph-style sequence positioning: every planned item (and every
+// non-root codeline's branch point) is one more step right of the previous
+// one in date order — not proportional to how many days apart they are
+// (Mermaid's default temporal model has no literal calendar scale).
+function useColumns(orderedCodelines, commits, events) {
+  return useMemo(() => {
+    const points = [];
+    orderedCodelines.forEach((cl) => {
+      if (cl.branch_point_date) {
+        points.push({ key: `codeline:${cl.id}`, date: cl.branch_point_date, tiebreak: cl.created_at });
+      }
+    });
+    commits.forEach((c) => {
+      points.push({ key: `commit:${c.id}`, date: c.planned_date, tiebreak: c.created_at });
+    });
+    events.forEach((e) => {
+      points.push({ key: `event:${e.id}`, date: e.planned_date, tiebreak: e.created_at });
+    });
+    points.sort((a, b) => {
+      const dateDiff = new Date(a.date) - new Date(b.date);
+      if (dateDiff !== 0) return dateDiff;
+      const tieDiff = new Date(a.tiebreak) - new Date(b.tiebreak);
+      if (tieDiff !== 0) return tieDiff;
+      return a.key.localeCompare(b.key);
+    });
+    const map = new Map();
+    points.forEach((p, i) => map.set(p.key, i));
+    return map;
+  }, [orderedCodelines, commits, events]);
+}
+
+function columnToX(index) {
+  return LEFT_PADDING + index * COLUMN_WIDTH;
+}
 
 function BoardLegend() {
-  const items = ['planned', 'in_progress', 'done', 'slipped'];
+  const neutral = 'var(--text-secondary)';
   return (
     <div className="board-legend">
-      {items.map((status) => (
-        <span key={status} className="board-legend-item">
-          <span
-            className="board-legend-swatch"
-            style={{ background: STATUS_COLOR[status] ?? 'transparent', border: `1px solid var(--text-muted)` }}
-          />
-          {STATUS_LABEL[status]}
-        </span>
-      ))}
+      <span className="board-legend-item">
+        <svg width={16} height={16} viewBox="-8 -8 16 16">
+          <circle r={7} fill={neutral} />
+        </svg>
+        Commit
+      </span>
+      <span className="board-legend-item">
+        <svg width={16} height={16} viewBox="-8 -8 16 16">
+          <circle r={7} fill={neutral} />
+          <path d="M -3.5 -3.5 L 3.5 3.5 M -3.5 3.5 L 3.5 -3.5" stroke="var(--surface)" strokeWidth={1.5} strokeLinecap="round" />
+        </svg>
+        Slipped
+      </span>
+      <span className="board-legend-item">
+        <svg width={16} height={16} viewBox="-8 -8 16 16">
+          <rect x={-7} y={-7} width={14} height={14} fill={neutral} />
+          <rect x={-4} y={-4} width={8} height={8} fill="var(--surface)" />
+        </svg>
+        Milestone commit
+      </span>
+      <span className="board-legend-item">
+        <svg width={16} height={16} viewBox="-8 -8 16 16">
+          <circle r={7} fill={neutral} />
+          <circle r={4} fill="var(--surface)" />
+        </svg>
+        Merge
+      </span>
+      <span className="board-legend-item">
+        <svg width={22} height={16} viewBox="-2 -9 22 18">
+          <polygon points="0,-2 0,2 4,6 18,6 18,-6 4,-6" fill="var(--surface)" stroke={neutral} strokeWidth={1.2} />
+          <circle cx={0} cy={0} r={1} fill={neutral} />
+        </svg>
+        Release tag
+      </span>
     </div>
   );
 }
@@ -38,7 +98,6 @@ export function PlanningBoard() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dragState, setDragState] = useState(null);
   const [isAddingCodeline, setIsAddingCodeline] = useState(false);
   const [isAddingBranch, setIsAddingBranch] = useState(false);
   const [isAddingPlannedCommit, setIsAddingPlannedCommit] = useState(false);
@@ -82,83 +141,19 @@ export function PlanningBoard() {
 
   const laneColorById = useMemo(() => {
     const map = new Map();
-    orderedCodelines.forEach((cl, i) => map.set(cl.id, cl.color || categoricalColor(i)));
+    orderedCodelines.forEach((cl, i) => map.set(cl.id, cl.color || gitColor(i)));
     return map;
   }, [orderedCodelines]);
 
-  const allDates = useMemo(
-    () => [
-      ...orderedCodelines.map((c) => c.branch_point_date),
-      ...commits.map((c) => c.planned_date),
-      ...events.map((e) => e.planned_date),
-    ],
-    [orderedCodelines, commits, events],
-  );
-
-  const { start, end } = useMemo(() => buildDateRange(allDates), [allDates]);
-  const scale = useMemo(() => createDateScale({ start, pixelsPerDay: PIXELS_PER_DAY }), [start]);
-  const timelineWidth = scale.widthBetween(start, end);
-  const totalHeight = AXIS_HEIGHT + orderedCodelines.length * ROW_HEIGHT;
+  const columnByKey = useColumns(orderedCodelines, commits, events);
+  const maxColumn = columnByKey.size > 0 ? columnByKey.size - 1 : 0;
+  const timelineWidth = columnToX(maxColumn) + RIGHT_PADDING;
+  const totalHeight = TOP_PADDING + orderedCodelines.length * ROW_HEIGHT;
 
   function laneY(codelineId) {
     const idx = laneIndexById.get(codelineId);
     if (idx == null) return null;
-    return AXIS_HEIGHT + idx * ROW_HEIGHT + ROW_HEIGHT / 2;
-  }
-
-  useEffect(() => {
-    if (!dragState) return undefined;
-
-    function handleMove(e) {
-      setDragState((prev) => prev && { ...prev, deltaX: e.clientX - prev.pointerStartX });
-    }
-
-    async function commitDrag(drag) {
-      const dayDelta = Math.round(drag.deltaX / PIXELS_PER_DAY);
-      if (dayDelta === 0) return;
-      const newDate = toISODateString(addDays(startOfDay(drag.originalDate), dayDelta));
-      try {
-        if (drag.kind === 'commit') {
-          const updated = await api.updatePlannedCommit(drag.id, { planned_date: newDate });
-          setCommits((prev) => prev.map((c) => (c.id === drag.id ? updated : c)));
-        } else {
-          const updated = await api.updatePlannedEvent(drag.id, { planned_date: newDate });
-          setEvents((prev) => prev.map((e) => (e.id === drag.id ? updated : e)));
-        }
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-
-    function handleUp() {
-      setDragState((prev) => {
-        if (prev) commitDrag(prev);
-        return null;
-      });
-    }
-
-    window.addEventListener('pointermove', handleMove);
-    window.addEventListener('pointerup', handleUp);
-    return () => {
-      window.removeEventListener('pointermove', handleMove);
-      window.removeEventListener('pointerup', handleUp);
-    };
-  }, [dragState]);
-
-  function startDrag(kind, id, originalDate) {
-    return (e) => {
-      e.preventDefault();
-      setDragState({ kind, id, pointerStartX: e.clientX, originalDate, deltaX: 0 });
-    };
-  }
-
-  function effectiveX(item, kind) {
-    const baseX = scale.dateToX(item.planned_date);
-    if (dragState && dragState.kind === kind && dragState.id === item.id) {
-      const snappedDelta = Math.round(dragState.deltaX / PIXELS_PER_DAY) * PIXELS_PER_DAY;
-      return baseX + snappedDelta;
-    }
-    return baseX;
+    return TOP_PADDING + idx * ROW_HEIGHT + ROW_HEIGHT / 2;
   }
 
   return (
@@ -240,7 +235,7 @@ export function PlanningBoard() {
       ) : (
         <div className="board-body">
           <div className="board-lane-labels">
-            <div style={{ height: AXIS_HEIGHT }} />
+            <div style={{ height: TOP_PADDING }} />
             {orderedCodelines.map((cl) => (
               <div
                 key={cl.id}
@@ -252,17 +247,18 @@ export function PlanningBoard() {
             ))}
           </div>
           <div className="board-timeline-scroll">
-            <svg width={timelineWidth + 20} height={totalHeight}>
-              <CalendarAxis scale={scale} start={start} end={end} axisHeight={AXIS_HEIGHT} height={totalHeight} />
+            <svg width={timelineWidth} height={totalHeight}>
               {orderedCodelines.map((cl) => {
                 const y = laneY(cl.id);
-                const laneStart = cl.branch_point_date ? scale.dateToX(cl.branch_point_date) : 0;
+                const laneStart = cl.branch_point_date
+                  ? columnToX(columnByKey.get(`codeline:${cl.id}`))
+                  : LEFT_PADDING;
                 return (
                   <CodelineLane
                     key={cl.id}
                     y={y}
                     startX={laneStart}
-                    endX={timelineWidth}
+                    endX={columnToX(maxColumn)}
                     color={laneColorById.get(cl.id)}
                   />
                 );
@@ -270,35 +266,36 @@ export function PlanningBoard() {
               {events.map((ev) => {
                 const sourceY = laneY(ev.source_codeline_id);
                 const targetY = ev.target_codeline_id ? laneY(ev.target_codeline_id) : null;
-                if (sourceY == null) return null;
+                const colIndex = columnByKey.get(`event:${ev.id}`);
+                if (sourceY == null || colIndex == null) return null;
                 return (
                   <PlannedEventMarker
                     key={ev.id}
-                    x={effectiveX(ev, 'event')}
+                    x={columnToX(colIndex)}
                     sourceY={sourceY}
                     targetY={targetY}
                     type={ev.type}
                     status={ev.status}
                     plannedDate={ev.planned_date}
-                    laneColor={laneColorById.get(ev.source_codeline_id)}
-                    isDragging={dragState?.kind === 'event' && dragState.id === ev.id}
-                    onPointerDown={startDrag('event', ev.id, ev.planned_date)}
+                    sourceColor={laneColorById.get(ev.source_codeline_id)}
+                    targetColor={ev.target_codeline_id ? laneColorById.get(ev.target_codeline_id) : undefined}
                   />
                 );
               })}
               {commits.map((commit) => {
                 const y = laneY(commit.codeline_id);
-                if (y == null) return null;
+                const colIndex = columnByKey.get(`commit:${commit.id}`);
+                if (y == null || colIndex == null) return null;
                 return (
                   <PlannedCommitNode
                     key={commit.id}
-                    x={effectiveX(commit, 'commit')}
+                    x={columnToX(colIndex)}
                     y={y}
                     title={commit.title}
                     status={commit.status}
                     plannedDate={commit.planned_date}
-                    isDragging={dragState?.kind === 'commit' && dragState.id === commit.id}
-                    onPointerDown={startDrag('commit', commit.id, commit.planned_date)}
+                    color={laneColorById.get(commit.codeline_id)}
+                    isMilestone={Boolean(commit.milestone_id)}
                   />
                 );
               })}

@@ -29,7 +29,7 @@ describe('PlanningBoard', () => {
     expect(await screen.findByText(/No codelines yet/)).toBeDefined();
   });
 
-  it('renders a lane per codeline and the status legend', async () => {
+  it('renders a lane per codeline and the shape legend', async () => {
     global.fetch = mockFetchJson({
       '/api/codelines': [
         { id: 'c1', name: 'trunk', color: null, branch_point_date: null, created_at: '2026-01-01T00:00:00.000Z' },
@@ -69,10 +69,11 @@ describe('PlanningBoard', () => {
     expect(await screen.findByText('branches/release-2.4')).toBeDefined();
 
     const legend = within(document.querySelector('.board-legend'));
-    expect(legend.getByText('Planned')).toBeDefined();
-    expect(legend.getByText('In progress')).toBeDefined();
-    expect(legend.getByText('Done')).toBeDefined();
+    expect(legend.getByText('Commit')).toBeDefined();
     expect(legend.getByText('Slipped')).toBeDefined();
+    expect(legend.getByText('Milestone commit')).toBeDefined();
+    expect(legend.getByText('Merge')).toBeDefined();
+    expect(legend.getByText('Release tag')).toBeDefined();
   });
 
   it('opens the add-codeline modal, blocks an empty name, and adds a new lane on success', async () => {
