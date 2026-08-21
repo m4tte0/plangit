@@ -85,33 +85,20 @@
 
 .board-body {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.git-graph-diagram {
   border: 1px solid var(--gridline);
   border-radius: 8px;
-  overflow: hidden;
-  background: var(--surface);
-}
-
-.board-lane-labels {
-  flex-shrink: 0;
-  width: 160px;
-  border-right: 1px solid var(--gridline);
-}
-
-.board-lane-label {
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-bottom: 1px solid var(--gridline);
-}
-
-.board-timeline-scroll {
-  flex: 1;
   overflow-x: auto;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.git-graph-diagram svg {
+  max-width: none;
 }
 
 .board-empty {
